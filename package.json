@@ -6,5 +6,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run"
+  },
+  "dependencies": {
+    "mongoose": "^9.9.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.12"
   }
 }

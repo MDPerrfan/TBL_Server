@@ -4,8 +4,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 
-import { notFoundMiddleware } from "../middleware/not-found.middleware";
-import { errorMiddleware } from "../middleware/error.middleware.js";
+import { notFoundMiddleware } from "./middleware/not-found.middleware";
+import { errorMiddleware } from "./middleware/error.middleware.js";
 
 const app = express();
 
