@@ -1,16 +1,46 @@
 {
+  "name": "tbl_server",
+  "version": "1.0.0",
+  "description": "Backend API for The Barber Lounge - premium men's grooming parlor",
+  "type": "module",
+  "main": "src/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest",
-    "test:run": "vitest run"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "lint": "eslint src"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MDPerrfan/TBL_Server.git"
+  },
+  "keywords": ["barber", "mern", "express", "mongodb", "clerk", "cloudinary"],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MDPerrfan/TBL_Server/issues"
+  },
+  "homepage": "https://github.com/MDPerrfan/TBL_Server#readme",
   "dependencies": {
-    "mongoose": "^9.9.1"
+    "@clerk/express": "^2.1.54",
+    "cloudinary": "^2.10.0",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.6.2",
+    "helmet": "^8.3.0",
+    "mongoose": "^9.9.2",
+    "morgan": "^1.11.0",
+    "multer": "^2.2.0",
+    "nodemailer": "^9.0.5",
+    "svix": "^1.99.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "tsx": "^4.23.12"
+    "eslint": "^10.8.1",
+    "nodemon": "^3.1.14"
   }
 }
+  
