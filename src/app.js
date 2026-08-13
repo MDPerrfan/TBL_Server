@@ -4,8 +4,9 @@ import helmet from "helmet";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import compression from "compression";
-import mongoSanitize from "express-mongo-sanitize";
-
+import mongoSanitize from "./middlewares/sanitize.middleware.js";
+import notFound from "./middlewares/notFound.middleware.js";
+import errorHandler from "./middlewares/error.middleware.js";
 import env from "./config/env.js";
 
 const app = express();
@@ -18,7 +19,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(mongoSanitize());
+app.use(mongoSanitize);
 
 // BODY PARSERS
 app.use(express.json({ limit: "16kb" }));
@@ -53,5 +54,7 @@ app.get("/api/v1/health", (req, res) => {
 // app.use("/api/v1", routes);
 
 // 404 + ERROR HANDLERS (added once middlewares/ layer is built)
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;
