@@ -8,7 +8,9 @@ import mongoSanitize from "./middlewares/sanitize.middleware.js";
 import notFound from "./middlewares/notFound.middleware.js";
 import errorHandler from "./middlewares/error.middleware.js";
 import env from "./config/env.js";
-
+import { clerkMiddleware } from "@clerk/express";
+import requireAuth from "./middlewares/requireAuth.middleware.js";
+import userRoutes from "./routes/user.routes.js";
 const app = express();
 
 // SECURITY MIDDLEWARE
@@ -21,17 +23,26 @@ app.use(
 );
 app.use(mongoSanitize);
 
+// 
+// ROUTES (will mount here later)
+
 // BODY PARSERS
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 app.use(compression());
 
+app.use(clerkMiddleware());
 // LOGGING
 if (env.nodeEnv === "development") {
   app.use(morgan("dev"));
 }
 
+app.get("/api/v1/test-auth", requireAuth, (req, res) => {
+  res.status(200).json({ success: true, user: req.dbUser });
+});
+
+app.use("/api/v1/users", userRoutes);
 // HEALTH CHECK
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -49,9 +60,6 @@ app.get("/api/v1/health", (req, res) => {
   });
 });
 
-// 
-// ROUTES (will mount here later)
-// app.use("/api/v1", routes);
 
 // 404 + ERROR HANDLERS (added once middlewares/ layer is built)
 app.use(notFound);
