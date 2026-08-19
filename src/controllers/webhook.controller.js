@@ -16,13 +16,13 @@ const clerkWebhook = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Missing svix headers");
   }
 
+  // Parse the raw Buffer body into a string for Svix verification
+  const payload = req.body.toString();
   const wh = new Webhook(WEBHOOK_SECRET);
   let event;
 
   try {
-    // req.body MUST be the raw Buffer here — not JSON-parsed —
-    // or svix's signature verification will fail. See app.js wiring below.
-    event = wh.verify(req.body, {
+    event = wh.verify(payload, {
       "svix-id": svixId,
       "svix-timestamp": svixTimestamp,
       "svix-signature": svixSignature,

@@ -11,6 +11,8 @@ import env from "./config/env.js";
 import { clerkMiddleware } from "@clerk/express";
 import requireAuth from "./middlewares/requireAuth.middleware.js";
 import userRoutes from "./routes/user.routes.js";
+import webhookRoutes from "./routes/webhook.routes.js"; 
+
 const app = express();
 
 // SECURITY MIDDLEWARE
@@ -23,16 +25,19 @@ app.use(
 );
 app.use(mongoSanitize);
 
-// 
-// ROUTES (will mount here later)
+// ==========================================
+// 2. WEBHOOK ROUTE (Must use express.raw() BEFORE global express.json())
+// ==========================================
+app.use("/api/v1/webhooks", express.raw({ type: "application/json" }), webhookRoutes);
 
-// BODY PARSERS
+// BODY PARSERS FOR OTHER ROUTES
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 app.use(compression());
 
 app.use(clerkMiddleware());
+
 // LOGGING
 if (env.nodeEnv === "development") {
   app.use(morgan("dev"));
@@ -43,6 +48,7 @@ app.get("/api/v1/test-auth", requireAuth, (req, res) => {
 });
 
 app.use("/api/v1/users", userRoutes);
+
 // HEALTH CHECK
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -60,8 +66,7 @@ app.get("/api/v1/health", (req, res) => {
   });
 });
 
-
-// 404 + ERROR HANDLERS (added once middlewares/ layer is built)
+// 404 + ERROR HANDLERS
 app.use(notFound);
 app.use(errorHandler);
 
