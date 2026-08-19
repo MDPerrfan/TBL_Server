@@ -10,43 +10,27 @@ const syncUser = asyncHandler(async (req, res, next) => {
     return next();
   }
 
-  await connectDB(); 
+  await connectDB();
 
-  let user = await User.findOne({ clerkId: userId });
-
-  // Fetch fresh user data from Clerk
+  // Fetch fresh user data from Clerk first
   const clerkUser = await clerkClient.users.getUser(userId);
   const primaryEmail = clerkUser.emailAddresses[0]?.emailAddress || "";
   const primaryPhone = clerkUser.phoneNumbers[0]?.phoneNumber || "";
 
-  if (!user) {
-    // Create user if not exists
-    user = await User.create({
-      clerkId: clerkUser.id,
-      email: primaryEmail,
-      firstName: clerkUser.firstName || "",
-      lastName: clerkUser.lastName || "",
-      avatar: clerkUser.imageUrl || "",
-      phone: primaryPhone,
-    });
-  } else {
-    // Keep local DB updated with profile changes made in Clerk
-    const hasChanged =
-      user.email !== primaryEmail ||
-      user.firstName !== (clerkUser.firstName || "") ||
-      user.lastName !== (clerkUser.lastName || "") ||
-      user.avatar !== (clerkUser.imageUrl || "") ||
-      user.phone !== primaryPhone;
+  const updateData = {
+    email: primaryEmail,
+    firstName: clerkUser.firstName || "",
+    lastName: clerkUser.lastName || "",
+    avatar: clerkUser.imageUrl || "",
+    phone: primaryPhone,
+  };
 
-    if (hasChanged) {
-      user.email = primaryEmail;
-      user.firstName = clerkUser.firstName || "";
-      user.lastName = clerkUser.lastName || "";
-      user.avatar = clerkUser.imageUrl || "";
-      user.phone = primaryPhone;
-      await user.save();
-    }
-  }
+  // Atomically find and update, or create if it doesn't exist (prevents 409 duplicate key errors)
+  const user = await User.findOneAndUpdate(
+    { clerkId: userId },
+    { $set: updateData, $setOnInsert: { clerkId: userId } },
+    { new: true, upsert: true, setDefaultsOnInsert: true }
+  );
 
   req.dbUser = user;
   next();
