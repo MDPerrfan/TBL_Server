@@ -1,52 +1,40 @@
 import mongoose from "mongoose";
 import env from "./env.js";
 
-let retryCount = 0;
-const MAX_RETRIES = 5;
-const RETRY_DELAY_MS = 5000;
+// Global cache to prevent multiple connections in serverless environments
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(env.mongoUri, {
-      dbName: env.dbName,
-    });
-
-    console.log(`MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
-    retryCount = 0; // reset on success
-
-    return conn;
-  } catch (error) {
-    console.error(` MongoDB connection error: ${error.message}`);
-
-    if (retryCount < MAX_RETRIES) {
-      retryCount++;
-      console.log(`Retrying connection (${retryCount}/${MAX_RETRIES}) in ${RETRY_DELAY_MS / 1000}s...`);
-      setTimeout(connectDB, RETRY_DELAY_MS);
-    } else {
-      console.error("Max retries reached. Exiting process.");
-      process.exit(1);
-    }
+  if (cached.conn) {
+    return cached.conn;
   }
+
+  if (!cached.promise) {
+    const opts = {
+      dbName: env.dbName,
+      bufferCommands: false, 
+      serverSelectionTimeoutMS: 5000, // Fail fast if MongoDB Atlas can't be reached
+    };
+
+    cached.promise = mongoose.connect(env.mongoUri, opts).then((mongooseInstance) => {
+      console.log(`MongoDB Connected: ${mongooseInstance.connection.host}/${mongooseInstance.connection.name}`);
+      return mongooseInstance;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (error) {
+    cached.promise = null; // Reset promise on failure so next request can retry
+    console.error(`MongoDB connection error: ${error.message}`);
+    throw error;
+  }
+
+  return cached.conn;
 };
-
-// Connection event listeners for runtime visibility
-mongoose.connection.on("disconnected", () => {
-  console.warn("MongoDB disconnected. Attempting to reconnect...");
-});
-
-mongoose.connection.on("reconnected", () => {
-  console.log("MongoDB reconnected");
-});
-
-mongoose.connection.on("error", (err) => {
-  console.error(`MongoDB runtime error: ${err.message}`);
-});
-
-// Graceful shutdown
-process.on("SIGINT", async () => {
-  await mongoose.connection.close();
-  console.log("MongoDB connection closed due to app termination (SIGINT)");
-  process.exit(0);
-});
 
 export default connectDB;
