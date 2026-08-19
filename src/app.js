@@ -25,9 +25,7 @@ app.use(
 );
 app.use(mongoSanitize);
 
-// ==========================================
-// 2. WEBHOOK ROUTE (Must use express.raw() BEFORE global express.json())
-// ==========================================
+// 2. WEBHOOK ROUTE 
 app.use("/api/v1/webhooks", express.raw({ type: "application/json" }), webhookRoutes);
 
 // BODY PARSERS FOR OTHER ROUTES
