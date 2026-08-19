@@ -1,6 +1,7 @@
 import { clerkClient, getAuth } from "@clerk/express";
 import User from "../models/User.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import connectDB from "../config/db.js";
 
 const syncUser = asyncHandler(async (req, res, next) => {
   const { userId } = getAuth(req);
@@ -8,6 +9,8 @@ const syncUser = asyncHandler(async (req, res, next) => {
   if (!userId) {
     return next();
   }
+
+  await connectDB(); 
 
   let user = await User.findOne({ clerkId: userId });
 
