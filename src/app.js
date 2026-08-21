@@ -12,6 +12,7 @@ import { clerkMiddleware } from "@clerk/express";
 import requireAuth from "./middlewares/requireAuth.middleware.js";
 import userRoutes from "./routes/user.routes.js";
 import webhookRoutes from "./routes/webhook.routes.js"; 
+import serviceRoutes from "./routes/service.routes.js";
 
 const app = express();
 
@@ -64,6 +65,8 @@ app.get("/api/v1/health", (req, res) => {
   });
 });
 
+//service routes
+app.use("/api/v1/services", serviceRoutes);
 // 404 + ERROR HANDLERS
 app.use(notFound);
 app.use(errorHandler);
